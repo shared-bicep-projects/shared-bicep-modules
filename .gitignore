@@ -1,0 +1,2 @@
+.github/workflows/publish-shared.template.yml
+.github/workflows/publish.iac-bicep-shared-abbr-locations.yml
