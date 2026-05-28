@@ -1,0 +1,105 @@
+# ============================================================================
+# Reusable workflow — Publish a single Bicep module to ACR
+# ============================================================================
+# Called by each per-module workflow (publish.<module-name>.yml).
+# Do NOT trigger this workflow directly; use the per-module files instead.
+#
+# REQUIRED GITHUB ENTERPRISE SECRETS (passed via `secrets: inherit`):
+#   AZURE_CLIENT_ID       - Entra ID App Registration client ID
+#                           (must have OIDC federated credential for this repo)
+#   AZURE_TENANT_ID       - Entra ID tenant ID
+#   AZURE_SUBSCRIPTION_ID - Azure subscription ID
+#   ACR_LOGIN_SERVER      - ACR login server hostname  (e.g. myregistry.suffix.azurecr.io)
+#   ACR_NAME              - ACR resource name  (e.g. myregistry)
+#   ACR_SUFFIX            - ACR tenant suffix  (e.g. suffix, the part between registry name and .azurecr.io)
+#
+# VERSIONING:
+#   Full version = <major>.<minor>.<build>
+#     major.minor  →  shared/<name>/version.json   (e.g. "0.1")
+#     build        →  github.run_number (auto-increments, no state needed)
+# ============================================================================
+
+name: "publish-module.template"
+
+on:
+  workflow_call:
+    inputs:
+      module_name:
+        description: "Folder name of the shared module under shared/"
+        required: true
+        type: string
+      org_name:
+        description: "GitHub organization name (for GHCR namespace)"
+        required: true
+        type: string
+      repo_name:
+        description: "GitHub repository name (for GHCR namespace)"
+        required: true
+        type: string
+
+permissions:
+  id-token: write  # Required for OIDC token exchange with Azure
+  packages: write  # Required to publish to GitHub Container Registry (GHCR)
+  contents: read   # Required to read the module files from the repo
+
+jobs:
+  publish:
+    name: "Publish ${{ inputs.module_name }}"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate module structure
+        env:
+          MODULE: ${{ inputs.module_name }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "$MODULE/main.bicep" ]; then
+            echo "::error file=$MODULE/main.bicep::main.bicep not found in $MODULE"
+            exit 1
+          fi
+          if [ ! -f "$MODULE/version.json" ]; then
+            echo "::error file=$MODULE/version.json::version.json not found in $MODULE"
+            exit 1
+          fi
+
+      - name: Resolve module version
+        id: version
+        env:
+          MODULE: ${{ inputs.module_name }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          # major.minor comes from version.json; build number (patch) is the
+          # workflow run number — auto-increments on every run, no state needed.
+          FULL=$(jq -r '.version' "$MODULE/version.json")
+          echo "full_version=$FULL" >> "$GITHUB_OUTPUT"
+          echo "Module: $MODULE  |  Version: $FULL"
+
+      # - name: Login to GHCR
+      #   run: |
+      #     echo "${{ secrets.GITHUB_TOKEN }}" | \
+      #     docker login ghcr.io \
+      #       -u ${{ github.actor }} \
+      #       --password-stdin
+
+      - name: Install Bicep CLI
+        run: az bicep install
+
+      - name: Publish module to ACR
+        env:
+          MODULE: ${{ inputs.module_name }}
+          ORG: ${{ inputs.org_name }}
+          REPO: ${{ inputs.repo_name }}
+          VERSION: ${{ steps.version.outputs.full_version }}
+        run: |
+          set -euo pipefail
+          TARGET="br:ghcr.io/${ORG}/${REPO}/${MODULE}:${VERSION}"
+          echo "Publishing → $TARGET"
+          az bicep publish \
+            --file "${MODULE}/main.bicep" \
+            --target "$TARGET" \
+            --force
+          echo "Successfully published ${MODULE}:${VERSION}"
