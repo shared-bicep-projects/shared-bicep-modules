@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Validate module structure
         run: |
@@ -79,9 +79,6 @@ jobs:
           set -euo pipefail
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
           echo "Publishing → $TARGET"
-          bicep publish \
-            "${MODULE}/main.bicep" \
-            --target "$TARGET" \
-            --force
+          bicep publish ${MODULE}/main.bicep --target "$TARGET" --target "$TARGET"
           echo "Successfully published ${MODULE}:${VERSION}"
 
