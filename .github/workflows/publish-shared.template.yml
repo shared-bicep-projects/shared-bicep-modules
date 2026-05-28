@@ -15,7 +15,7 @@
 #
 # VERSIONING:
 #   Full version = <major>.<minor>.<build>
-#     major.minor  →  shared/<name>/version.json   (e.g. "0.1")
+#     major.minor  →  <name>/version.json   (e.g. "0.1")
 #     build        →  github.run_number (auto-increments, no state needed)
 # ============================================================================
 
@@ -25,7 +25,7 @@ on:
   workflow_call:
     inputs:
       module_name:
-        description: "Folder name of the shared module under shared/"
+        description: "Folder name of the shared module under "
         required: true
         type: string
       org_name:
@@ -59,12 +59,12 @@ jobs:
       - name: Validate module structure
         run: |
           set -euo pipefail
-          if [ ! -f "shared/$MODULE/main.bicep" ]; then
-            echo "::error file=shared/$MODULE/main.bicep::main.bicep not found in shared/$MODULE"
+          if [ ! -f "$MODULE/main.bicep" ]; then
+            echo "::error file=$MODULE/main.bicep::main.bicep not found in $MODULE"
             exit 1
           fi
-          if [ ! -f "shared/$MODULE/version.json" ]; then
-            echo "::error file=shared/$MODULE/version.json::version.json not found in shared/$MODULE"
+          if [ ! -f "$MODULE/version.json" ]; then
+            echo "::error file=$MODULE/version.json::version.json not found in $MODULE"
             exit 1
           fi
 
@@ -74,7 +74,7 @@ jobs:
           set -euo pipefail
           # major.minor comes from version.json; build number (patch) is the
           # workflow run number — auto-increments on every run, no state needed.
-          FULL=$(jq -r '.version' "shared/$MODULE/version.json")
+          FULL=$(jq -r '.version' "$MODULE/version.json")
           echo "full_version=$FULL" >> "$GITHUB_OUTPUT"
           echo "Module: $MODULE  |  Version: $FULL"
 
@@ -92,7 +92,7 @@ jobs:
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
           echo "Publishing → $TARGET"
           az bicep publish \
-            --file "shared/${MODULE}/main.bicep" \
+            --file "${MODULE}/main.bicep" \
             --target "$TARGET" \
             --force
           echo "Successfully published ${MODULE}:${VERSION}"
