@@ -79,5 +79,5 @@ jobs:
           set -euo pipefail
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
           echo "Publishing → $TARGET"
-          bicep publish ${MODULE}/main.bicep --target "$TARGET" --target "$TARGET"
+          bicep publish ${MODULE}/main.bicep --target "$TARGET" --force
           echo "Successfully published ${MODULE}:${VERSION}"
