@@ -62,15 +62,16 @@ jobs:
 
       - name: Install Bicep CLI
         run: |
-          # Fetch the latest Bicep CLI binary
-          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
-          # Mark it as executable
-          chmod +x ./bicep
-          # Add bicep to your PATH (requires admin)
-          sudo mv ./bicep /usr/local/bin/bicep
-          # Verify you can now access the 'bicep' command
-          bicep --help
-          # Done!
+          # # Fetch the latest Bicep CLI binary
+          # curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          # # Mark it as executable
+          # chmod +x ./bicep
+          # # Add bicep to your PATH (requires admin)
+          # sudo mv ./bicep /usr/local/bin/bicep
+          # # Verify you can now access the 'bicep' command
+          # bicep --help
+          # # Done!
+          rad install
 
       - name: Publish module to GHCR
         env:
@@ -79,5 +80,6 @@ jobs:
           set -euo pipefail
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
           echo "Publishing → $TARGET"
-          bicep publish ${MODULE}/main.bicep --target "$TARGET" --force
+          # bicep publish ${MODULE}/main.bicep --target "$TARGET" --force
+          rad bicep publish --file "${MODULE}/main.bicep" --target "$TARGET"
           echo "Successfully published ${MODULE}:${VERSION}"
