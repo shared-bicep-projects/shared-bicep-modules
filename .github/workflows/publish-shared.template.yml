@@ -72,8 +72,7 @@ jobs:
           # bicep --help
           # # Done!
           wget -q "https://raw.githubusercontent.com/radius-project/radius/main/deploy/install.sh" -O - | /bin/bash
-          rad initialize
-
+          
       - name: Publish module to GHCR
         env:
           VERSION: ${{ steps.version.outputs.full_version }}
