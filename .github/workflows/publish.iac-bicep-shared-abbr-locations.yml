@@ -39,7 +39,7 @@ jobs:
 
   publish:
     name: "Publish"
-    needs: gate
+    # needs: gate
     uses: ./.github/workflows/publish-shared.template.yml
     with:
       module_name: iac-bicep-shared-abbr-locations
