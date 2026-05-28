@@ -24,18 +24,18 @@ permissions:
   contents: read
 
 jobs:
-  gate:
-    name: "Await Publish Approval"
-    runs-on: ubuntu-latest
-    timeout-minutes: 1440  # Auto-cancels if not approved within 24 hours
-    # -----------------------------------------------------------------------
-    # This environment must be created in GitHub → Settings → Environments.
-    # Add required reviewers there so a human must approve before publishing.
-    # -----------------------------------------------------------------------
-    environment: module-publish
-    steps:
-      - name: "Publish approved"
-        run: echo "Publishing of '${{ github.workflow }}' approved by ${{ github.actor }}."
+  # gate:
+  #   name: "Await Publish Approval"
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 1440  # Auto-cancels if not approved within 24 hours
+  #   # -----------------------------------------------------------------------
+  #   # This environment must be created in GitHub → Settings → Environments.
+  #   # Add required reviewers there so a human must approve before publishing.
+  #   # -----------------------------------------------------------------------
+  #   environment: module-publish
+  #   steps:
+  #     - name: "Publish approved"
+  #       run: echo "Publishing of '${{ github.workflow }}' approved by ${{ github.actor }}."
 
   publish:
     name: "Publish"
