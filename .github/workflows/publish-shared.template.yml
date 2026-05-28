@@ -96,11 +96,3 @@ jobs:
           context: ./${MODULE}
           push: true
           tags: ${{ steps.version.outputs.full_version }}
-        
-      - name: Build and push Docker image with latest version tag
-        id: push
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: ./${MODULE}
-          push: true
-          tags: latest
