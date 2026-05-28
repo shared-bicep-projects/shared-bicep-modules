@@ -89,25 +89,6 @@ jobs:
           echo "full_version=$FULL" >> "$GITHUB_OUTPUT"
           echo "Module: $MODULE  |  Version: $FULL"
 
-      - name: Install Bicep CLI
-        run: az bicep install
-
-      - name: Publish module to GHCR
-        env:
-          MODULE: ${{ inputs.module_name }}
-          ORG: ${{ inputs.org_name }}
-          REPO: ${{ inputs.repo_name }}
-          VERSION: ${{ steps.version.outputs.full_version }}
-        run: |
-          set -euo pipefail
-          TARGET="br:ghcr.io/${ORG}/${REPO}/${MODULE}:${VERSION}"
-          echo "Publishing → $TARGET"
-          az bicep publish \
-            --file "${MODULE}/main.bicep" \
-            --target "$TARGET" \
-            --force
-          echo "Successfully published ${MODULE}:${VERSION}"
-
       - name: Build and push Docker image with current version tag
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
