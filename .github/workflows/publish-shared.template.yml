@@ -37,19 +37,30 @@ on:
         required: true
         type: string
 
-permissions:
-  id-token: write  # Required for OIDC token exchange with Azure
-  packages: write  # Required to publish to GitHub Container Registry (GHCR)
-  contents: read   # Required to read the module files from the repo
+env:
+  REGISTRY: ghcr.io
 
 jobs:
   publish:
     name: "Publish ${{ inputs.module_name }}"
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write     # Required for OIDC token exchange with Azure
+      packages: write     # Required to publish to GitHub Container Registry (GHCR)
+      attestations: write # Required to create SLSA provenance attestations in GHCR
+      contents: read      # Required to read the module files from the repo
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Login to GHCR
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Validate module structure
         env:
@@ -78,13 +89,6 @@ jobs:
           echo "full_version=$FULL" >> "$GITHUB_OUTPUT"
           echo "Module: $MODULE  |  Version: $FULL"
 
-      - name: Login to GHCR
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | \
-          docker login ghcr.io \
-            -u ${{ github.actor }} \
-            --password-stdin
-
       - name: Install Bicep CLI
         run: az bicep install
 
@@ -103,3 +107,19 @@ jobs:
             --target "$TARGET" \
             --force
           echo "Successfully published ${MODULE}:${VERSION}"
+
+      - name: Build and push Docker image with current version tag
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: ./${MODULE}
+          push: true
+          tags: ${{ steps.version.outputs.full_version }}
+        
+      - name: Build and push Docker image with latest version tag
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: ./${MODULE}
+          push: true
+          tags: latest
