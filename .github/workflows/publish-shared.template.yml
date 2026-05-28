@@ -40,6 +40,8 @@ on:
 env:
   REGISTRY: ghcr.io
   MODULE: ${{ inputs.module_name }}
+  ORG: ${{ inputs.org_name }}
+  REPO: ${{ inputs.repo_name }}
 
 jobs:
   publish:
@@ -54,42 +56,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Login to GHCR
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-
       - name: Validate module structure
         run: |
           set -euo pipefail
-          if [ ! -f "$MODULE/main.bicep" ]; then
-            echo "::error file=$MODULE/main.bicep::main.bicep not found in $MODULE"
+          if [ ! -f "shared/$MODULE/main.bicep" ]; then
+            echo "::error file=shared/$MODULE/main.bicep::main.bicep not found in shared/$MODULE"
             exit 1
           fi
-          if [ ! -f "$MODULE/version.json" ]; then
-            echo "::error file=$MODULE/version.json::version.json not found in $MODULE"
+          if [ ! -f "shared/$MODULE/version.json" ]; then
+            echo "::error file=shared/$MODULE/version.json::version.json not found in shared/$MODULE"
             exit 1
           fi
 
       - name: Resolve module version
         id: version
-        env:
-          BUILD_NUMBER: ${{ github.run_number }}
         run: |
           set -euo pipefail
           # major.minor comes from version.json; build number (patch) is the
           # workflow run number — auto-increments on every run, no state needed.
-          FULL=$(jq -r '.version' "$MODULE/version.json")
+          FULL=$(jq -r '.version' "shared/$MODULE/version.json")
           echo "full_version=$FULL" >> "$GITHUB_OUTPUT"
           echo "Module: $MODULE  |  Version: $FULL"
 
-      - name: Build and push Docker image with current version tag
-        id: push
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: ./${{ env.MODULE }}
-          push: true
-          tags: ${{ steps.version.outputs.full_version }}
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Install Bicep CLI
+        run: az bicep install
+
+      - name: Publish module to ACR
+        env:
+          VERSION: ${{ steps.version.outputs.full_version }}
+        run: |
+          set -euo pipefail
+          TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
+          echo "Publishing → $TARGET"
+          az bicep publish \
+            --file "shared/${MODULE}/main.bicep" \
+            --target "$TARGET" \
+            --force
+          echo "Successfully published ${MODULE}:${VERSION}"
+
