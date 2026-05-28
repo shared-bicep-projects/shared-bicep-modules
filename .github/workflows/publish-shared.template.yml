@@ -39,6 +39,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  MODULE: ${{ inputs.module_name }}
 
 jobs:
   publish:
@@ -62,8 +63,6 @@ jobs:
 
 
       - name: Validate module structure
-        env:
-          MODULE: ${{ inputs.module_name }}
         run: |
           set -euo pipefail
           if [ ! -f "$MODULE/main.bicep" ]; then
@@ -78,7 +77,6 @@ jobs:
       - name: Resolve module version
         id: version
         env:
-          MODULE: ${{ inputs.module_name }}
           BUILD_NUMBER: ${{ github.run_number }}
         run: |
           set -euo pipefail
@@ -92,6 +90,6 @@ jobs:
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: ./${MODULE}
+          context: ./${{ env.MODULE }}
           push: true
           tags: ${{ steps.version.outputs.full_version }}
