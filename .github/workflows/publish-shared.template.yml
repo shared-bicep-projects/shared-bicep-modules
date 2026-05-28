@@ -47,7 +47,6 @@ jobs:
     permissions:
       id-token: write     # Required for OIDC token exchange with Azure
       packages: write     # Required to publish to GitHub Container Registry (GHCR)
-      attestations: write # Required to create SLSA provenance attestations in GHCR
       contents: read      # Required to read the module files from the repo
 
     steps:
