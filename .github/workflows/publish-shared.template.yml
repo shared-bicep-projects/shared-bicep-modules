@@ -60,26 +60,19 @@ jobs:
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Install Bicep CLI
+      - name: Install Radius CLI
         run: |
-          # # Fetch the latest Bicep CLI binary
-          # curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
-          # # Mark it as executable
-          # chmod +x ./bicep
-          # # Add bicep to your PATH (requires admin)
-          # sudo mv ./bicep /usr/local/bin/bicep
-          # # Verify you can now access the 'bicep' command
-          # bicep --help
-          # # Done!
           wget -q "https://raw.githubusercontent.com/radius-project/radius/main/deploy/install.sh" -O - | /bin/bash
-          
+
       - name: Publish module to GHCR
         env:
           VERSION: ${{ steps.version.outputs.full_version }}
         run: |
           set -euo pipefail
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
+          LATEST="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:latest"
           echo "Publishing → $TARGET"
-          # bicep publish ${MODULE}/main.bicep --target "$TARGET" --force
           rad bicep publish --file "${MODULE}/main.bicep" --target "$TARGET"
           echo "Successfully published ${MODULE}:${VERSION}"
+          rad bicep publish --file "${MODULE}/main.bicep" --target "$LATEST"
+          echo "Successfully published ${MODULE}:latest"
