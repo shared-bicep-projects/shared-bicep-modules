@@ -81,4 +81,3 @@ jobs:
           echo "Publishing → $TARGET"
           bicep publish ${MODULE}/main.bicep --target "$TARGET" --target "$TARGET"
           echo "Successfully published ${MODULE}:${VERSION}"
-
