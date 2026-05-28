@@ -84,7 +84,7 @@ jobs:
       - name: Install Bicep CLI
         run: az bicep install
 
-      - name: Publish module to ACR
+      - name: Publish module to GHCR
         env:
           VERSION: ${{ steps.version.outputs.full_version }}
         run: |
@@ -92,7 +92,7 @@ jobs:
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
           echo "Publishing → $TARGET"
           bicep publish \
-            --file "${MODULE}/main.bicep" \
+            "${MODULE}/main.bicep" \
             --target "$TARGET" \
             --force
           echo "Successfully published ${MODULE}:${VERSION}"
