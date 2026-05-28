@@ -78,17 +78,17 @@ jobs:
           echo "full_version=$FULL" >> "$GITHUB_OUTPUT"
           echo "Module: $MODULE  |  Version: $FULL"
 
-      # - name: Login to GHCR
-      #   run: |
-      #     echo "${{ secrets.GITHUB_TOKEN }}" | \
-      #     docker login ghcr.io \
-      #       -u ${{ github.actor }} \
-      #       --password-stdin
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+          docker login ghcr.io \
+            -u ${{ github.actor }} \
+            --password-stdin
 
       - name: Install Bicep CLI
         run: az bicep install
 
-      - name: Publish module to ACR
+      - name: Publish module to GHCR
         env:
           MODULE: ${{ inputs.module_name }}
           ORG: ${{ inputs.org_name }}
