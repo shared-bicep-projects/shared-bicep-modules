@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'storage-account/**'
+      - 'modules/storage-account/**'
 
 permissions:
   contents: read
@@ -13,10 +13,10 @@ permissions:
   id-token: write
 
 env:
-  MODULE_PATH: storage-account/main.bicep
+  MODULE_PATH: modules/storage-account/main.bicep
   MODULE_NAME: storage-account
   REGISTRY: ghcr.io
-  ORG_NAME: shared-bicep-projects
+  ORG_NAME: your-github-org
 
 jobs:
   publish:
