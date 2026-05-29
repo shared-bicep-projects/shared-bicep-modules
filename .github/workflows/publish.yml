@@ -16,7 +16,7 @@ env:
   MODULE_PATH: storage-account/main.bicep
   MODULE_NAME: storage-account
   REGISTRY: ghcr.io
-  ORG_NAME: your-github-org
+  ORG_NAME: shared-bicep-projects
 
 jobs:
   publish:
