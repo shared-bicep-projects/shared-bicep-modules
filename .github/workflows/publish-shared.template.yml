@@ -101,6 +101,6 @@ jobs:
         run: |
           set -euo pipefail
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
-          echo "Publishing module to:"
+          echo "Publishing module with command → bicep publish $MODULE/main.bicep --target $TARGET"
           echo "$TARGET"
           bicep publish "$MODULE/main.bicep" --target "$TARGET"
