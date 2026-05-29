@@ -64,16 +64,31 @@ jobs:
       #   run: |
       #     wget -q "https://raw.githubusercontent.com/radius-project/radius/main/deploy/install.sh" -O - | /bin/bash
 
+      # - name: Publish module to GHCR
+      #   env:
+      #     VERSION: ${{ steps.version.outputs.full_version }}
+      #   run: |
+      #     set -euo pipefail
+      #     TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
+      #     LATEST="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:latest"
+      #     echo "Publishing → $TARGET"
+      #     # rad bicep publish --file "${MODULE}/main.bicep" --target "$TARGET"
+      #     # echo "Successfully published ${MODULE}:${VERSION}"
+      #     # rad bicep publish --file "${MODULE}/main.bicep" --target "$LATEST"
+      #     # echo "Successfully published ${MODULE}:latest"
+
+      - name: Install Bicep CLI
+        run: |
+          az bicep install
+          az bicep version
+
       - name: Publish module to GHCR
-        env:
-          VERSION: ${{ steps.version.outputs.full_version }}
         run: |
           set -euo pipefail
+          VERSION="${{ steps.version.outputs.full_version }}"
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
-          LATEST="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:latest"
-          echo "Publishing → $TARGET"
-          # rad bicep publish --file "${MODULE}/main.bicep" --target "$TARGET"
-          # echo "Successfully published ${MODULE}:${VERSION}"
-          # rad bicep publish --file "${MODULE}/main.bicep" --target "$LATEST"
-          # echo "Successfully published ${MODULE}:latest"
-          docker push ghcr.io/${ORG}/${REPO}/${MODULE}:latest
+          echo "Publishing module to:"
+          echo "$TARGET"
+          az bicep publish \
+            --file "$MODULE/main.bicep" \
+            --target "$TARGET"
