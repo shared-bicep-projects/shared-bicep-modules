@@ -58,14 +58,18 @@ jobs:
           echo "Module: $MODULE  |  Version: $FULL"
 
       - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Log in to GHCR (PowerShell)
+      #   shell: pwsh
+      #   run: echo $env:GITHUB_TOKEN | docker login ghcr.io -u $env:GITHUB_ACTOR --password-stdin
+
+      # - name: Log in to GitHub Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
 
       # - name: Install Radius CLI
       #   run: |
@@ -96,15 +100,9 @@ jobs:
           bicep --help
           # Done!
 
-      - name: Set up GHCR credentials for Bicep
-        run: |
-          mkdir -p ~/.docker
-          echo "{\"credHelpers\": {\"ghcr.io\": \"desktop\"}}" > ~/.docker/config.json
-
       - name: Publish module to GHCR
         env:
           VERSION: ${{ steps.version.outputs.full_version }}
-          DOCKER_CONFIG: ~/.docker
         run: |
           set -euo pipefail
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"

@@ -1,0 +1,42 @@
+name: Publish Bicep Module
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'storage-account/**'
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  MODULE_PATH: storage-account/main.bicep
+  MODULE_NAME: storage-account
+  REGISTRY: ghcr.io
+  ORG_NAME: your-github-org
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Bicep
+        run: az bicep install
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            -u ${{ github.actor }} \
+            --password-stdin
+
+      - name: Publish Bicep module
+        run: |
+          bicep publish \
+            $MODULE_PATH \
+            --target br:${REGISTRY}/${ORG_NAME}/bicep/modules/${MODULE_NAME}:v1
