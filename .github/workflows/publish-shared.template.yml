@@ -79,8 +79,15 @@ jobs:
 
       - name: Install Bicep CLI
         run: |
-          az bicep install
-          az bicep version
+          # Fetch the latest Bicep CLI binary
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          # Mark it as executable
+          chmod +x ./bicep
+          # Add bicep to your PATH (requires admin)
+          sudo mv ./bicep /usr/local/bin/bicep
+          # Verify you can now access the 'bicep' command
+          bicep --help
+          # Done!
 
       - name: Set up GHCR credentials for Bicep
         run: |
@@ -96,6 +103,4 @@ jobs:
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
           echo "Publishing module to:"
           echo "$TARGET"
-          az bicep publish \
-            --file "$MODULE/main.bicep" \
-            --target "$TARGET"
+          bicep publish "$MODULE/main.bicep" --target "$TARGET"
