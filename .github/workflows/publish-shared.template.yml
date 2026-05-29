@@ -82,10 +82,17 @@ jobs:
           az bicep install
           az bicep version
 
+      - name: Set up GHCR credentials for Bicep
+        run: |
+          mkdir -p ~/.docker
+          echo "{\"credHelpers\": {\"ghcr.io\": \"desktop\"}}" > ~/.docker/config.json
+
       - name: Publish module to GHCR
+        env:
+          VERSION: ${{ steps.version.outputs.full_version }}
+          DOCKER_CONFIG: ~/.docker
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.full_version }}"
           TARGET="br:${REGISTRY}/${ORG}/${REPO}/${MODULE}:${VERSION}"
           echo "Publishing module to:"
           echo "$TARGET"
